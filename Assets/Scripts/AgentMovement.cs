@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
-using Pathfinding;
+using UnityEngine.AI;
 
 //Used to apply the actual values for the the movements of the agent after calculations and make him move
 public class AgentMovement : MonoBehaviour
@@ -21,26 +21,25 @@ public class AgentMovement : MonoBehaviour
     Vector3 maxInterest;
 
 
-    // Start is called before the first frame update
     void Start()
     {        
         interestMap = new Vector3[resolution];
         dangerMap = new float[resolution];
-        InvokeRepeating("FindMaxInterest", 0f, 1f);
+        
+        InvokeRepeating("UpdatePath", 0f, 0.2f);
     }
     private void UpdatePath()
     {
-        //maxInterest = FindMaxInterest();   
+        maxInterest = FindMaxInterest();   
     }
     
-    // Update is called once per frame
     
     private void FixedUpdate()
     {
-        
         rb.velocity = maxInterest*movementSpeed;
     }
-  
+
+   
     Vector3 FindMaxInterest()
     {
         Vector3 moveV = (goal.position - transform.position).normalized;
@@ -51,7 +50,8 @@ public class AgentMovement : MonoBehaviour
         {
             Vector3 dir = Quaternion.Euler(0, (360f / resolution) * i, 0) * transform.forward;
             RaycastHit hit;
-            if (Physics.SphereCast(transform.position, 0.7f, dir, out hit, 5f))
+            
+            if (Physics.SphereCast(transform.position, 1f, dir, out hit, 10f))
             {
                 
                 if (hit.transform.CompareTag("Avoid"))
@@ -65,7 +65,7 @@ public class AgentMovement : MonoBehaviour
 
             //we do this because the opposite vector of the desired direction is the worst case so its zero and as we get closer
             //to the desired direction our values get closer to one
-            //Debug.DrawRay(transform.position, dir * d);
+            
             interestMap[i] = d * dir;
            
             Debug.DrawRay(transform.position, interestMap[i], Color.white);
@@ -108,9 +108,5 @@ public class AgentMovement : MonoBehaviour
         this.maxInterest = maxInterest;
         return maxInterest;
     }
-    void OnDrawGizmos()
-    {
-        
 
-    }
 }
